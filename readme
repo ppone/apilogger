@@ -1,0 +1,55 @@
+ApiLogger
+
+Keeps track of your how may API calls you have used.
+
+Can set to keep track on a rolling basis or you can specify to keep track of the calls on a fixed period.
+
+-- Specify additional data points you want 
+-- Track(Request)
+--Track.ApiCallsRemaining()
+--Track.ApiCallsRemainingInXTime(arguments time 
+--Track.ShowConfiguration()
+--Track.ChangeConfiguration
+
+
+--NewAPIToTrack(name,reset_type,rolling_period)
+--UpdateAPItoTrack(name,reset_type,rolling_period)
+
+++ create custom schema for each new API Table tracked
+
+-Schema api tracker
+
+Master API tracker (API tables tracked)
+- ID
+- Name 
+- Created_Time_Stamp
+- Modified_Time_Stamp
+- Reset_type => (rolling / fixed_period)
+- Rolling_Period
+- Request_Frequency
+- Request
+
+
+Sample API Table 
+ - id
+ - insertion_time_stamp
+ - raw_request
+ - raw_response
+ - raw_response_timestamp
+ - call_successfull
+ - *specify field for additional data points. 
+
+
+
+Methods:
+CallsRemaining() (numofcalls int)
+CallsRemainingafter(Time) (numofcalls int)
+TimeWhenAPIWillBeGreaterEqualtoPercentageFree(freepercentage int) time
+
+
+Struct:
+{
+	
+
+}
+
