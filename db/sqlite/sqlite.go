@@ -1,7 +1,7 @@
 package sqlite
 
 import "database/sql"
-import "../sqlconstants"
+import "../sqlconstants/"
 import _ "github.com/mattn/go-sqlite3"
 import "fmt"
 import "errors"
@@ -9,6 +9,28 @@ import "errors"
 type connection struct {
 	db     *sql.DB
 	dbName string
+}
+
+func initDatabase() error {
+
+}
+
+func NewConnection(fileName string) (*connection, error) {
+
+	if fileName == "" {
+
+		fileName = file
+	}
+
+	db, err := sql.Open(sqlcontants.DB_TYPE_SQLITE3, sqlconstants.SQLITE3_CONNECTION_STRING)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &connection{db, fileName}, nil
+
 }
 
 func (Conn *connection) Close() error {
