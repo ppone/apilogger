@@ -1,13 +1,10 @@
 package sqlite
 
 import "database/sql"
+import "../sqlconstants"
 import _ "github.com/mattn/go-sqlite3"
 import "fmt"
 import "errors"
-
-const file = "throttle.db"
-
-const check_if_table_exists = "SELECT NAME FROM SQLITE WHERE TYPE=? AND NAME=?;"
 
 type connection struct {
 	db     *sql.DB

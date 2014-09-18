@@ -4,8 +4,6 @@ import "time"
 import "errors"
 import "../db"
 
-const createBucketSchema := "CREATE TABLE BUCKETS(NAME TEXT NOT NULL UNIQUE PRIMARY KEY, VOLUME INTEGER, CAPACITY INTEGER, TIMEFRAME INTEGER, CREATED_TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UPDATED_TIMESTAMP TEXT)"
-
 type LeakyBucket interface {
 	Capacity() int
 	Fill(amount int) error
@@ -19,7 +17,7 @@ type leakyBucket struct {
 	name      string
 	capacity  int
 	volume    int
-	timeFrame int //seconds 
+	timeFrame int //seconds
 }
 
 func NewBucket(name string, capacity, timeFrame int) LeakyBucket {
@@ -37,9 +35,8 @@ func (L *leakyBucket) Empty() bool {
 }
 
 func (L *leakyBucket) Volume() int {
-	return L.volume == 0
+	return L.volume
 }
-
 
 func (L *leakyBucket) UpdateBucket() {
 
