@@ -1,8 +1,8 @@
 package leakybucket
 
-import "time"
 import "errors"
-import "../db"
+import "apilogger/db"
+import "apilogger/db/sqlconstants"
 
 type LeakyBucket interface {
 	Capacity() int
@@ -10,7 +10,7 @@ type LeakyBucket interface {
 	Volume() int
 	UpdateBucket()
 	WhenWillBucketBeEmpty() (time, error)
-	Empty() bool
+	Empty() bools
 }
 
 type leakyBucket struct {
@@ -20,26 +20,75 @@ type leakyBucket struct {
 	timeFrame int //seconds
 }
 
-func NewBucket(name string, capacity, timeFrame int) LeakyBucket {
-	return &leakyBucket{capcity, 0, timeFrame, capacity / timeFrame}
+func newConnection() (db.Connection, error) {
+	conn, err := db.New(sqlconstants.CURRENT_VENDOR)
+
+	if err != nil {
+		return nil, err
+	}
+}
+
+func initDB() (db.Connection, error) {
+	conn, err := newConnection()
+
+	err = conn.InitTable(sqlconstants.SQLITE3_CREATE_BUCKET_SCHEMA, sqlconstants.SQLITE3_BUCKET_NAME)
+
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+}
+
+func LoadBucket(name string) (LeakeyBucket, error) {
+
+}
+
+func NewBucket(name string, capacity, timeFrame int) (LeakyBucket, error) {
+	conn, err := newConnection()
+
+	conn.Insert(sqlconstants.SQLITE3_CREATE_BUCKET_SCHEMA, name, capacity, 0, timeFrame)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &leakyBucket{name, capacity, volume, timeFrame}, nil
 }
 
 func (L *leakyBucket) Capacity() int {
-	L.UpdateBucket()
 	return L.capacity
-
 }
 
 func (L *leakyBucket) Empty() bool {
+	L.RefreshBucket()
 	return L.volume == 0
 }
 
+func (L *leakyBucket) Full() bool {
+	L.RefreshBucket()
+	return L.volume == L.capacity
+}
+
 func (L *leakyBucket) Volume() int {
+	L.RefreshBucket()
 	return L.volume
 }
 
-func (L *leakyBucket) UpdateBucket() {
+//seconds
+//capacity / timeToRefresh ()  * timeNow - timeNow
 
+func (L *leakyBucket) RefreshBucket() {
+
+}
+
+func (L *leakyBucket) Increase() error {
+	err := L.Fill(1)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (L *leakyBucket) Fill(amount int) error {
