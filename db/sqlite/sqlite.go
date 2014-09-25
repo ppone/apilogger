@@ -1,44 +1,33 @@
 package sqlite
 
 import "database/sql"
-import "../sqlconstants/"
+import "../sqlconstants"
 import _ "github.com/mattn/go-sqlite3"
 import "fmt"
 import "errors"
 
 type connection struct {
-	db     *sql.DB
-	dbName string
+	db *sql.DB
 }
 
-func initDatabase() error {
+func NewConnection() (*connection, error) {
 
-}
-
-func NewConnection(fileName string) (*connection, error) {
-
-	if fileName == "" {
-
-		fileName = file
-	}
-
-	db, err := sql.Open(sqlcontants.DB_TYPE_SQLITE3, sqlconstants.SQLITE3_CONNECTION_STRING)
+	db, err := sql.Open(sqlconstants.CurrentVendor(), sqlconstants.SQLITE3_CONNECTION_STRING)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
-	return &connection{db, fileName}, nil
+	return &connection{db}, nil
 
 }
 
 func (Conn *connection) Close() error {
-	return Conn.Close()
+	return Conn.db.Close()
 }
 
 func (Conn *connection) CheckTableExists(tableName string) (bool, error) {
-	rows, err := Conn.db.Query(check_if_table_exists, "table", tableName)
+	rows, err := Conn.db.Query(sqlconstants.SQLITE3_CHECK_IF_TABLE_EXISTS, "table", tableName)
 
 	defer rows.Close()
 
@@ -51,7 +40,33 @@ func (Conn *connection) CheckTableExists(tableName string) (bool, error) {
 
 }
 
-func (Conn *connection) CreateTable(createStatement string, tableName string) error {
+/*
+func getColumNamesFromSelectQuery(query string) ([]sqlData, error) {
+
+}*/
+/*
+func (Conn *connection) Select(query string) ([]sqlData, error) {
+	rows, err := Conn.db.Query(query, data)
+
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	//cols, err := rows.Columns()
+	_, err = rows.Columns()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+
+}*/
+
+func (Conn *connection) InitTable(createStatement string, tableName string) error {
 	if createStatement == "" {
 		return errors.New("Create Statement cannot be empty")
 
@@ -113,11 +128,8 @@ func (Conn *connection) Insert(insertStatement string, data ...interface{}) erro
 
 	err = tx.Commit()
 
-	if err != nil {
-		return err
-	}
-
 	defer stmt.Close()
 
-	return nil
+	return err
+
 }
