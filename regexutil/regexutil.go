@@ -1,7 +1,6 @@
 package regexutil
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -63,8 +62,8 @@ func fillCustomColumnType(parsedColumnMap map[string]string) error {
 		}
 
 		if !isconstraint {
-			fmt.Println("over riding column type with ", firstWordinConstraints["firstword"])
 			parsedColumnMap[SQLITE3_COLUMNTYPE] = firstWordinConstraints["firstword"]
+			parsedColumnMap[SQLITE3_CONSTRAINTS] = strings.Trim(strings.Replace(parsedColumnMap[SQLITE3_CONSTRAINTS], firstWordinConstraints["firstword"], "", -1), " ")
 		}
 
 	}
@@ -117,7 +116,7 @@ func secondPassParseCreateStatement(columnsToParse string) ([]map[string]string,
 		if ok, _ := sqlconstants.IsSQLConstraint(parsedColumnMap[SQLITE3_COLUMNNAME]); err == nil {
 
 			if ok {
-				return nil, errors.New("column with name = " + parsedColumnMap[SQLITE3_COLUMNNAME] + " is invalid")
+				return nil, errors.New("column name cannot be blank")
 			}
 		} else {
 			return nil, err

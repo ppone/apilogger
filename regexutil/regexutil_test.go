@@ -27,8 +27,6 @@ func TestFirstPassParseCreateStatement(t *testing.T) {
 		t.Error(err)
 	}
 
-	//fmt.Println("Pass One == > table => ", table, " , columns => ", columns)
-
 }
 
 func TestSecondPassParseCreateStatement(t *testing.T) {
@@ -36,8 +34,6 @@ func TestSecondPassParseCreateStatement(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	//fmt.Println("Pass Two == > table => ", table, " , columns => ", columns)
 
 	_, err = secondPassParseCreateStatement(columns)
 
@@ -50,24 +46,16 @@ func TestSecondPassParseCreateStatement(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Println("new pass.")
-	//fmt.Println("Pass Two == > table => ", table, " , columns => ", columns)
-
-	c, err := secondPassParseCreateStatement(columns)
+	_, err = secondPassParseCreateStatement(columns)
 
 	if err != nil {
 		t.Error(err)
 	}
-
-	fmt.Println(c)
 
 	_, columns, err = firstPassParseCreateStatement(TEST_SQLITE3_CREATE_STATEMENT_C)
 	if err != nil {
 		t.Error(err)
 	}
-
-	fmt.Println("new pass 2.")
-	//fmt.Println("Pass Two == > table => ", table, " , columns => ", columns)
 
 	_, err = secondPassParseCreateStatement(columns)
 
@@ -89,13 +77,50 @@ func TestParseCreateStatement(t *testing.T) {
 		t.Error("error table name is incorrect")
 	}
 
-	fmt.Println(table, columnArrayMap)
+	cam := []map[string]string{}
+	c1 := map[string]string{"": "X INTEGER", "columntype": "INTEGER", "columnname": "X", "constraints": ""}
+	c2 := map[string]string{"": "Y TEXT PRIMARY KEY", "columntype": "TEXT", "columnname": "Y", "constraints": "PRIMARY KEY"}
 
-	cam := []map[string]string{{"": "X INTEGER", "columntype": "INTEGER", "columnname": "X", "constraints": ""}, "": "Y TEXT PRIMARY KEY", "columntype": "TEXT", "columnname": "Y", "constraints": "PRIMARY KEY"}
+	cam = append(cam, c1)
+	cam = append(cam, c2)
 
 	if !reflect.DeepEqual(columnArrayMap, cam) {
-		fmt.Println(cam)
-		fmt.Println(columnArrayMap)
+		t.Error("ParseCreateStatement created unexpected results => test case ->", TEST_SQLITE3_CREATE_STATEMENT_A)
+		t.Error("test data =>", cam)
+		t.Error("returned data =>", columnArrayMap)
 	}
+
+	table, columnArrayMap, err = ParseCreateStatement(TEST_SQLITE3_CREATE_STATEMENT_B)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if table != "FOO" {
+		t.Error("error table name is incorrect")
+	}
+
+	cam = []map[string]string{}
+	c1 = map[string]string{"": "X INTEGER", "columntype": "INTEGER", "columnname": "X", "constraints": ""}
+	c2 = map[string]string{"": "Y TEXT PRIMARY KEY", "columntype": "TEXT", "columnname": "Y", "constraints": "PRIMARY KEY"}
+	c3 := map[string]string{"": "Z BETA NOT NULL", "columntype": "BETA", "columnname": "Z", "constraints": "NOT NULL"}
+
+	cam = append(cam, c1)
+	cam = append(cam, c2)
+	cam = append(cam, c3)
+
+	if !reflect.DeepEqual(columnArrayMap, cam) {
+		t.Error("ParseCreateStatement created unexpected results => test case ->", TEST_SQLITE3_CREATE_STATEMENT_B)
+		t.Error("test data =>", cam)
+		t.Error("returned data =>", columnArrayMap)
+	}
+
+	table, columnArrayMap, err = ParseCreateStatement(TEST_SQLITE3_CREATE_STATEMENT_C)
+
+	if err == nil {
+		t.Error("ERROR should be thrown")
+	}
+
+	fmt.Println(err)
 
 }
