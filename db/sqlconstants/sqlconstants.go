@@ -1,6 +1,7 @@
 package sqlconstants
 
 import "errors"
+import "strings"
 
 const CURRENT_VENDOR = SQLITE3
 const SQLITE3_FILE_URL = "throttle.db"
@@ -45,6 +46,34 @@ func CurrentVendor() string {
 	}
 
 	return ""
+}
+
+func IsSQLConstraint(constraint string) (bool, error) {
+	c := strings.ToUpper(constraint)
+	if CURRENT_VENDOR == SQLITE3 {
+		switch c {
+		case "PRIMARY":
+			return true, nil
+		case "DEFAULT":
+			return true, nil
+		case "NOT":
+			return true, nil
+		case "UNIQUE":
+			return true, nil
+		case "CHECK":
+			return true, nil
+		case "REFERENCES":
+			return true, nil
+		case "COLLATE":
+			return true, nil
+		default:
+			return false, nil
+		}
+
+	}
+
+	return false, errors.New("Go type no recongnized for current db vendor => " + CurrentVendor())
+
 }
 
 func GoType(sqlType int) (string, error) {
