@@ -8,18 +8,48 @@ import (
 )
 import "errors"
 
-const SQLITE3_TABLE = "table"
-const SQLITE3_COLUMNS = "columns"
-const SQLITE3_COLUMNNAME = "columnname"
-const SQLITE3_COLUMNTYPE = "columntype"
-const SQLITE3_CONSTRAINTS = "constraints"
+const TABLE = "table"
+const COLUMNS = "columns"
+const COLUMNNAME = "columnname"
+const COLUMNTYPE = "columntype"
+const CONSTRAINTS = "constraints"
 const FIRSTWORD = "firstword"
 const SQLITE3_CREATE_TABLE_FIRST_PASS_PARSER = `^(?i)\s*create\s+table\s+(?P<table>[a-z]*)\s*\((?P<columns>\s*(?:[a-z]+\s*.*\s*,\s*)*(?:[a-z]+\s*[^,]*\s*)+\s*)\)\s*[;]?\s*$`
 const SQLITE3_CREATE_TABLE_SECOND_PASS_COLUMN_PARSER = `^(?i)\s*(?P<columnname>\w+)\s+(?P<columntype>INTEGER|TEXT|REAL|BLOB|NULL)?(?P<constraints>.*)$`
 const SQLITE3_GET_BACK_FIRST_WORD = `^(?i)\s*(?P<firstword>\w+)\b*.*$`
+const SQLITE3_DEFAULT_TIMESTAMP = `^(?i)\s*(?:DEFAULT\s*CURRENT_TIMESTAMP$|DEFAULT\s*CURRENT_TIMESTAMP\s+.*$)`
 
-//const SQLITE3_CREATE_TABLE_SECOND_PASS_COLUMN_PARSER = `^(?i)\s*(?P<columnname>\w+)\s+.*?(?P<columntype>INTEGER|TEXT|REAL|BLOB|DEFAULT\s*CURRENT_TIMESTAMP|NULL).*$`
-const tmp = `^(?i)\s*(?P<columnname>\w+)\s+([^ITRBDC]\w*\s+)*(?P<columntype>INTEGER|TEXT|REAL|BLOB|DEFAULT\s*CURRENT_TIMESTAMP).*$`
+func getDefaultTimestamp() string {
+	if sqlconstants.CurrentVendor() == "sqlite3" {
+		return SQLITE3_DEFAULT_TIMESTAMP
+	}
+
+	return ""
+}
+
+func getBackFirstWord() string {
+	if sqlconstants.CurrentVendor() == "sqlite3" {
+		return SQLITE3_GET_BACK_FIRST_WORD
+	}
+
+	return ""
+}
+
+func createTableFirstPassParser() string {
+	if sqlconstants.CurrentVendor() == "sqlite3" {
+		return SQLITE3_CREATE_TABLE_FIRST_PASS_PARSER
+	}
+
+	return ""
+}
+
+func createTableSecondPassColumnParser() string {
+	if sqlconstants.CurrentVendor() == "sqlite3" {
+		return SQLITE3_CREATE_TABLE_SECOND_PASS_COLUMN_PARSER
+	}
+
+	return ""
+}
 
 func ParseAndReturnNameGroupValueMap(regexParser, statementToParse string) (map[string]string, error) {
 	re, err := regexp.Compile(regexParser)
@@ -50,11 +80,21 @@ func ParseAndReturnNameGroupValueMap(regexParser, statementToParse string) (map[
 }
 
 func fillCustomColumnType(parsedColumnMap map[string]string) error {
-	if parsedColumnMap[SQLITE3_COLUMNTYPE] == "" {
-		firstWordinConstraints, err := ParseAndReturnNameGroupValueMap(SQLITE3_GET_BACK_FIRST_WORD, parsedColumnMap["constraints"])
+
+	isTimestamp, err := regexp.MatchString(getDefaultTimestamp(), parsedColumnMap["constraints"])
+	if err != nil {
+		return err
+	}
+
+	if isTimestamp {
+		parsedColumnMap[COLUMNTYPE] = "TIMESTAMP"
+
+	} else if parsedColumnMap[COLUMNTYPE] == "" {
+		firstWordinConstraints, err := ParseAndReturnNameGroupValueMap(getBackFirstWord(), parsedColumnMap["constraints"])
 		if err != nil {
 			return err
 		}
+
 		isconstraint, err := sqlconstants.IsSQLConstraint(firstWordinConstraints["firstword"])
 
 		if err != nil {
@@ -62,8 +102,8 @@ func fillCustomColumnType(parsedColumnMap map[string]string) error {
 		}
 
 		if !isconstraint {
-			parsedColumnMap[SQLITE3_COLUMNTYPE] = firstWordinConstraints["firstword"]
-			parsedColumnMap[SQLITE3_CONSTRAINTS] = strings.Trim(strings.Replace(parsedColumnMap[SQLITE3_CONSTRAINTS], firstWordinConstraints["firstword"], "", -1), " ")
+			parsedColumnMap[COLUMNTYPE] = firstWordinConstraints["firstword"]
+			parsedColumnMap[CONSTRAINTS] = strings.Trim(strings.Replace(parsedColumnMap[CONSTRAINTS], firstWordinConstraints["firstword"], "", -1), " ")
 		}
 
 	}
@@ -88,12 +128,12 @@ func ParseCreateStatement(statementToParse string) (string, []map[string]string,
 }
 
 func firstPassParseCreateStatement(statementToParse string) (string, string, error) {
-	m, err := ParseAndReturnNameGroupValueMap(SQLITE3_CREATE_TABLE_FIRST_PASS_PARSER, statementToParse)
+	m, err := ParseAndReturnNameGroupValueMap(createTableFirstPassParser(), statementToParse)
 	if err != nil {
 		return "", "", err
 	}
 
-	return m[SQLITE3_TABLE], m[SQLITE3_COLUMNS], nil
+	return m[TABLE], m[COLUMNS], nil
 
 }
 
@@ -104,20 +144,21 @@ func secondPassParseCreateStatement(columnsToParse string) ([]map[string]string,
 	var columnmaparray []map[string]string
 
 	for _, v := range columns {
-		parsedColumnMap, err := ParseAndReturnNameGroupValueMap(SQLITE3_CREATE_TABLE_SECOND_PASS_COLUMN_PARSER, strings.Trim(v, " "))
+		parsedColumnMap, err := ParseAndReturnNameGroupValueMap(createTableSecondPassColumnParser(), strings.Trim(v, " "))
 		if err != nil {
 			return nil, err
 		}
 
-		parsedColumnMap[SQLITE3_COLUMNTYPE] = strings.Trim(parsedColumnMap[SQLITE3_COLUMNTYPE], " ")
-		parsedColumnMap[SQLITE3_COLUMNNAME] = strings.Trim(parsedColumnMap[SQLITE3_COLUMNNAME], " ")
-		parsedColumnMap[SQLITE3_CONSTRAINTS] = strings.Trim(parsedColumnMap[SQLITE3_CONSTRAINTS], " ")
+		parsedColumnMap[COLUMNTYPE] = strings.Trim(parsedColumnMap[COLUMNTYPE], " ")
+		parsedColumnMap[COLUMNNAME] = strings.Trim(parsedColumnMap[COLUMNNAME], " ")
+		parsedColumnMap[CONSTRAINTS] = strings.Trim(parsedColumnMap[CONSTRAINTS], " ")
 
-		if ok, _ := sqlconstants.IsSQLConstraint(parsedColumnMap[SQLITE3_COLUMNNAME]); err == nil {
+		if ok, err := sqlconstants.IsSQLConstraint(parsedColumnMap[COLUMNNAME]); err == nil {
 
 			if ok {
 				return nil, errors.New("column name cannot be blank")
 			}
+
 		} else {
 			return nil, err
 		}
