@@ -1,6 +1,7 @@
 package godata
 
 import "../../regexutil"
+import "../sqlconstants"
 
 type GoData struct {
 	goValue interface{}
@@ -8,8 +9,8 @@ type GoData struct {
 
 type GoColumn struct {
 	name    string
-	sqlType int
-	goType  int
+	sqlType string
+	goType  string
 }
 
 type GoRow struct {
@@ -42,7 +43,7 @@ func NewGoColumns() *GoColumns {
 	return &GoColumns{}
 }
 
-func (c *GoColumns) Add(name string, sqlType, goType int) *GoColumns {
+func (c *GoColumns) Add(name string, sqlType, goType string) *GoColumns {
 	data := GoColumn{name, sqlType, goType}
 	c.columns = append(c.columns, data)
 	return c
@@ -54,11 +55,6 @@ func (r *GoRow) Add(value interface{}) *GoRow {
 	return r
 }
 
-func NewGoTable(name, dbVendor string, columns *GoColumns, rows *GoRow) *GoTable {
-	return &GoTable{name, dbVendor, columns, rows}
-
-}
-
 func NewMetaTableFromCreateStatement(stmt string) (*GoMetaTable, error) {
 
 	table, columnArrayMap, err := regexutil.ParseCreateStatement(stmt)
@@ -68,15 +64,17 @@ func NewMetaTableFromCreateStatement(stmt string) (*GoMetaTable, error) {
 		return nil, err
 	}
 
-	for _, v := range columnArrayMap {
-		columnname := columnArrayMap[regexutil.COLUMNAME]
-		sqltype := columnArrayMap[regexutil.COLUMNTYPE]
-		gotype, err := sqlconstants.Gotype(sqltype)
+	for _, column := range columnArrayMap {
+		columnname := column[regexutil.COLUMNNAME]
+		sqltype := column[regexutil.COLUMNTYPE]
+		gotype, err := sqlconstants.GoType(sqltype)
 		if err != nil {
 			return nil, err
 		}
-		cols.Add(columnname, sqlType, goType)
+		cols.Add(columnname, sqltype, gotype)
 
 	}
+
+	return &GoMetaTable{table, sqlconstants.CurrentVendor(), cols}, nil
 
 }
