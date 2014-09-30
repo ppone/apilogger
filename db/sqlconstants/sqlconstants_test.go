@@ -16,5 +16,5 @@ func TestGoType(t *testing.T) {
 		return
 	}
 
-	fmt.Println("CONSTANT VALUES => ", SQLITE3_TYPE_NIL, SQLITE3_TYPE_INTEGER)
+	fmt.Println("CONSTANT VALUES => ", SQLITE3_TYPE_NULL, SQLITE3_TYPE_INTEGER)
 }
