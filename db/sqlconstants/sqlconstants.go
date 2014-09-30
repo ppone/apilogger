@@ -16,14 +16,13 @@ const SQLITE3_DELETE_BUCKET = "DELETE BUCKET WHERE NAME = ?"
 const SQLITE3_BUCKET_NAME = "BUCKETS"
 
 const (
-	SQLITE3_TYPE_NIL = iota
-	SQLITE3_TYPE_INTEGER
-	SQLITE3_TYPE_FLOAT
-	SQLITE3_TYPE_BOOL
-	SQLITE3_TYPE_BLOB
-	SQLITE3_TYPE_TEXT
-	SQLITE3_TYPE_TIMESTAMP
-
+	SQLITE3_TYPE_NULL      = ""
+	SQLITE3_TYPE_INTEGER   = "INTEGER"
+	SQLITE3_TYPE_TEXT      = "TEXT"
+	SQLITE3_TYPE_REAL      = "REAL"
+	SQLITE3_TYPE_BLOB      = "BLOG"
+	SQLITE3_TYPE_BOOL      = "BOOL"
+	SQLITE3_TYPE_TIMESTAMP = "TIMESTAMP"
 	//add postgres, plus other types here
 )
 
@@ -76,14 +75,14 @@ func IsSQLConstraint(constraint string) (bool, error) {
 
 }
 
-func GoType(sqlType int) (string, error) {
+func GoType(sqlType string) (string, error) {
 	if CURRENT_VENDOR == SQLITE3 {
 		switch sqlType {
-		case SQLITE3_TYPE_NIL:
+		case SQLITE3_TYPE_NULL:
 			return "nil", nil
 		case SQLITE3_TYPE_INTEGER:
 			return "int", nil
-		case SQLITE3_TYPE_FLOAT:
+		case SQLITE3_TYPE_REAL:
 			return "float64", nil
 		case SQLITE3_TYPE_BOOL:
 			return "bool", nil
@@ -91,6 +90,8 @@ func GoType(sqlType int) (string, error) {
 			return "string", nil
 		case SQLITE3_TYPE_TIMESTAMP:
 			return "time.Time", nil
+		default:
+			return "", errors.New("sqltype not recongnized")
 
 		}
 	}
@@ -99,15 +100,15 @@ func GoType(sqlType int) (string, error) {
 
 }
 
-func SQLType(goType string) (int, error) {
+func SQLType(goType string) (string, error) {
 	if CURRENT_VENDOR == SQLITE3 {
 		switch goType {
 		case "nil":
-			return SQLITE3_TYPE_NIL, nil
+			return SQLITE3_TYPE_NULL, nil
 		case "int":
 			return SQLITE3_TYPE_INTEGER, nil
 		case "float64":
-			return SQLITE3_TYPE_FLOAT, nil
+			return SQLITE3_TYPE_REAL, nil
 		case "bool":
 			return SQLITE3_TYPE_BOOL, nil
 		case "string":
@@ -118,6 +119,6 @@ func SQLType(goType string) (int, error) {
 		}
 	}
 
-	return -1, errors.New("Go type no recongnized for current db vendor => " + CurrentVendor())
+	return "", errors.New("Go type no recongnized for current db vendor => " + CurrentVendor())
 
 }
