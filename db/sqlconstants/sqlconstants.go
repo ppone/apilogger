@@ -91,7 +91,7 @@ func GoType(sqlType string) (string, error) {
 		case SQLITE3_TYPE_TIMESTAMP:
 			return "time.Time", nil
 		default:
-			return "", errors.New("sqltype not recongnized")
+			return "", nil
 
 		}
 	}
