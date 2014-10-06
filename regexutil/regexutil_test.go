@@ -12,6 +12,46 @@ const TEST_SQLITE3_CREATE_STATEMENT_B = "CREATE TABLE FOO ( X INTEGER, Y TEXT PR
 const TEST_SQLITE3_CREATE_STATEMENT_C = "CREATE TABLE FOO ( X INTEGER, PRIMARY KEY Y, Z BETA NOT NULL)"
 const TEST_SQLITE3_CREATE_STATEMENT_D = "CREATE TABLE FOO ( X INTEGER, Y TEXT PRIMARY KEY, Z BETA NOT NULL, T DEFAULT  CURRENT_TIMESTAMP)"
 
+const TEST_SQLITE_SELECT_STATEMENT_A = "SELECT * FROM FOO WHERE X = 2 AND Y = 3"
+const TEST_SQLITE_SELECT_STATEMENT_B = "SELECT NAME, ADDRESS FROM FOOBAR WHERE ID IS NOT NULL;"
+
+const TEST_SQLITE_SELECT_STATEMENT_C = "SELECT NAME,ADDRESS FROM FOO;"
+
+func TestTableNameFromSelect(t *testing.T) {
+	tableName, err := TableNameFromSelect(TEST_SQLITE_SELECT_STATEMENT_A)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if tableName != "FOO" {
+		t.Error("table name does not equal ", "FOO")
+
+	}
+
+	tableName, err = TableNameFromSelect(TEST_SQLITE_SELECT_STATEMENT_B)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if tableName != "FOOBAR" {
+		t.Error("table name does not equal ", "FOO")
+	}
+
+	tableName, err = TableNameFromSelect(TEST_SQLITE_SELECT_STATEMENT_C)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if tableName != "FOO" {
+		t.Error("table name does not equal ", "FOO")
+		t.Error("table name actually is ", tableName)
+	}
+
+}
+
 func TestReturnNameGroupValueMap(t *testing.T) {
 	_, err := ParseAndReturnNameGroupValueMap(SQLITE3_CREATE_TABLE_FIRST_PASS_PARSER, TEST_SQLITE3_CREATE_STATEMENT_A)
 
