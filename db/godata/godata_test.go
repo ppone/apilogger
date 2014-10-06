@@ -7,6 +7,32 @@ const TEST_SQLITE3_CREATE_STATEMENT_B = "CREATE TABLE FOO ( X INTEGER, Y TEXT PR
 const TEST_SQLITE3_CREATE_STATEMENT_C = "CREATE TABLE FOO ( X INTEGER, PRIMARY KEY Y, Z BETA NOT NULL)"
 const TEST_SQLITE3_CREATE_STATEMENT_D = "CREATE TABLE FOO ( X INTEGER, Y TEXT PRIMARY KEY, Z BETA NOT NULL, T DEFAULT  CURRENT_TIMESTAMP)"
 
+func TestPointerConvertor(t *testing.T) {
+
+	var m interface{}
+	s := "hello world"
+	m = &s
+
+	_, err := PointerConvertor(m)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	var n interface{}
+
+	var u int64
+	u = 2342342341111
+	n = &u
+
+	_, err = PointerConvertor(n)
+
+	if err == nil {
+		t.Error(err)
+	}
+
+}
+
 func TestNewMetaTableFromCreateStatement(t *testing.T) {
 
 	//TEST A
