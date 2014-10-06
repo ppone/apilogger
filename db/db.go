@@ -1,8 +1,10 @@
 package db
 
 import _ "github.com/mattn/go-sqlite3"
-import "../sqlite"
+
+import "./sqlite"
 import "errors"
+import "./godata"
 
 func NewConnection(dbDriver string) (Connection, error) {
 
@@ -14,9 +16,10 @@ func NewConnection(dbDriver string) (Connection, error) {
 }
 
 type Connection interface {
-	Insert(insertStatement string, data ...interface{}) error
-	InitTable(createStatement string, tableName string) error
 	CheckTableExists(tableName string) (bool, error)
-	Insert(insertStatement string, data ...interface{}) error
 	Close() error
+	InitTable(createStatement string, tableName string) error
+	Insert(insertStatement string, data ...interface{}) (int64, error)
+	MetaGoTable(name string) (*godata.GoMetaTable, error)
+	Select(query string, data ...interface{}) (*godata.GoSelect, error)
 }
