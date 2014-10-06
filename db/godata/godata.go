@@ -1,58 +1,76 @@
 package godata
 
 import "../../regexutil"
+
 import "../sqlconstants"
 
-type GoData struct {
-	goValue interface{}
-}
-
-type GoColumn struct {
-	name    string
+type GoType struct {
 	sqlType string
 	goType  string
 }
 
-type GoRow struct {
-	row []GoData
-}
+type GoRow []interface{}
 
-type GoRows struct {
-	rows []GoRow
-}
-type GoColumns struct {
-	columns []GoColumn
+type GoRows []GoRow
+
+type GoColumns map[string]GoType
+
+type GoSelect struct {
+	columns GoColumns
+	rows    GoRows
 }
 
 type GoMetaTable struct {
 	name     string
 	dbVendor string
-	columns  *GoColumns
+	columns  GoColumns
 }
 
 type GoTable struct {
-	metatable *GoMetaTable
-	rows      *GoRow
+	metatable GoMetaTable
+	rows      GoRow
 }
 
-func NewGoRow() *GoRow {
-	return &GoRow{}
+func NewGoRow() GoRow {
+	return GoRow{}
 }
 
-func NewGoColumns() *GoColumns {
-	return &GoColumns{}
+func NewGoRows() GoRows {
+	return GoRows{}
 }
 
-func (c *GoColumns) Add(name string, sqlType, goType string) *GoColumns {
-	data := GoColumn{name, sqlType, goType}
-	c.columns = append(c.columns, data)
+func NewGoColumns() GoColumns {
+	return GoColumns{}
+}
+
+func NewGoSelect(columns GoColumns, rows GoRows) GoSelect {
+	return GoSelect{columns, rows}
+}
+
+func (s GoSelect) GetColumns() GoColumns {
+	return s.columns
+}
+
+func (s GoSelect) GetRows() []GoRow {
+	return s.rows
+}
+
+func (c GoColumns) Add(name, sqlType, goType string) GoColumns {
+	t := GoType{sqlType, goType}
+	c[name] = t
 	return c
 }
 
-func (r *GoRow) Add(value interface{}) *GoRow {
-	data := GoData{value}
-	r.row = append(r.row, data)
-	return r
+func (t GoType) GoType() string {
+	return t.goType
+}
+
+func (t GoType) SqlType() string {
+	return t.sqlType
+}
+
+func (m GoMetaTable) GetColumns() GoColumns {
+	return m.columns
 }
 
 func NewMetaTableFromCreateStatement(stmt string) (*GoMetaTable, error) {
