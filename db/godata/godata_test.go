@@ -23,40 +23,44 @@ func TestNewMetaTableFromCreateStatement(t *testing.T) {
 		t.Error("table name not stored properly")
 	}
 
-	columns := meta.columns.GetAll()
+	columns := meta.columns
 
-	if columns[0].name != "X" {
+	colName := "X"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[0].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[0].sqlType != "INTEGER" {
+	if columns[colName].SqlType() != "INTEGER" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[0].goType != "int" {
+	if columns[colName].GoType() != "int" {
 		t.Error("Error column go type  is wrong")
 	}
 
-	if columns[1].name != "Y" {
+	colName = "Y"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[1].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[1].sqlType != "TEXT" {
+	if columns[colName].SqlType() != "TEXT" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[1].goType != "string" {
+	if columns[colName].GoType() != "string" {
 		t.Error("Error column go type  is wrong")
 	}
 
 	//TEST B
 
 	meta, err = NewMetaTableFromCreateStatement(TEST_SQLITE3_CREATE_STATEMENT_B)
+
 	if err != nil {
 		t.Error(err)
-		return
 	}
 
 	if meta.name != "FOO" {
@@ -67,44 +71,50 @@ func TestNewMetaTableFromCreateStatement(t *testing.T) {
 		t.Error("table name not stored properly")
 	}
 
-	columns = meta.columns.GetAll()
+	columns = meta.columns
 
-	if columns[0].name != "X" {
+	colName = "X"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[0].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[0].sqlType != "INTEGER" {
+	if columns[colName].SqlType() != "INTEGER" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[0].goType != "int" {
+	if columns[colName].GoType() != "int" {
 		t.Error("Error column go type  is wrong")
 	}
 
-	if columns[1].name != "Y" {
+	colName = "Y"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[1].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[1].sqlType != "TEXT" {
+	if columns[colName].SqlType() != "TEXT" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[1].goType != "string" {
+	if columns[colName].GoType() != "string" {
 		t.Error("Error column go type  is wrong")
 	}
 
-	if columns[2].name != "Z" {
+	colName = "Z"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[0].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[2].sqlType != "BETA" {
+	if columns[colName].SqlType() != "BETA" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[2].goType != "" {
+	if columns[colName].GoType() != "" {
 		t.Error("Error column go type  is wrong")
 	}
 
@@ -117,11 +127,10 @@ func TestNewMetaTableFromCreateStatement(t *testing.T) {
 	}
 
 	//TEST D
-
 	meta, err = NewMetaTableFromCreateStatement(TEST_SQLITE3_CREATE_STATEMENT_D)
+
 	if err != nil {
 		t.Error(err)
-		return
 	}
 
 	if meta.name != "FOO" {
@@ -132,57 +141,65 @@ func TestNewMetaTableFromCreateStatement(t *testing.T) {
 		t.Error("table name not stored properly")
 	}
 
-	columns = meta.columns.GetAll()
+	columns = meta.columns
 
-	if columns[0].name != "X" {
+	colName = "X"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[0].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[0].sqlType != "INTEGER" {
+	if columns[colName].SqlType() != "INTEGER" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[0].goType != "int" {
+	if columns[colName].GoType() != "int" {
 		t.Error("Error column go type  is wrong")
 	}
 
-	if columns[1].name != "Y" {
+	colName = "Y"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[1].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[1].sqlType != "TEXT" {
+	if columns[colName].SqlType() != "TEXT" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[1].goType != "string" {
+	if columns[colName].GoType() != "string" {
 		t.Error("Error column go type  is wrong")
 	}
 
-	if columns[2].name != "Z" {
+	colName = "Z"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[0].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[2].sqlType != "BETA" {
+	if columns[colName].SqlType() != "BETA" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[2].goType != "" {
+	if columns[colName].GoType() != "" {
 		t.Error("Error column go type  is wrong")
 	}
 
-	if columns[3].name != "T" {
+	colName = "T"
+
+	if _, ok := columns[colName]; !ok {
 		t.Error("Error column name is wrong")
-		t.Error("Column name is => " + columns[0].name)
+		t.Error("Column name is => " + colName)
 	}
 
-	if columns[3].sqlType != "TIMESTAMP" {
+	if columns[colName].SqlType() != "TIMESTAMP" {
 		t.Error("Error column sql type is wrong")
 	}
 
-	if columns[3].goType != "time.Time" {
+	if columns[colName].GoType() != "time.Time" {
 		t.Error("Error column go type  is wrong")
 	}
 
