@@ -18,6 +18,17 @@ const SQLITE3_CREATE_TABLE_FIRST_PASS_PARSER = `^(?i)\s*create\s+table\s+(?P<tab
 const SQLITE3_CREATE_TABLE_SECOND_PASS_COLUMN_PARSER = `^(?i)\s*(?P<columnname>\w+)\s+(?P<columntype>INTEGER|TEXT|REAL|BLOB|NULL)?(?P<constraints>.*)$`
 const SQLITE3_GET_BACK_FIRST_WORD = `^(?i)\s*(?P<firstword>\w+)\b*.*$`
 const SQLITE3_DEFAULT_TIMESTAMP = `^(?i)\s*(?:DEFAULT\s*CURRENT_TIMESTAMP$|DEFAULT\s*CURRENT_TIMESTAMP\s+.*$)`
+const SQLITE3_GET_TABLE_FROM_SELECT = `^(?i)\s*select\s+.*from\s+(?P<tablename>[a-z]+)(?:;|\s+.*;?)?$`
+
+//const SQLITE3_GET_TABLE_FROM_SELECT = `^(?i)\s*select\s+.*from\s+(?P<tablename>[a-z]+)\s+.*$`
+
+func getTableNameFromSelect() string {
+	if sqlconstants.CurrentVendor() == "sqlite3" {
+		return SQLITE3_GET_TABLE_FROM_SELECT
+	}
+
+	return ""
+}
 
 func getDefaultTimestamp() string {
 	if sqlconstants.CurrentVendor() == "sqlite3" {
@@ -49,6 +60,25 @@ func createTableSecondPassColumnParser() string {
 	}
 
 	return ""
+}
+
+func TableNameFromSelect(selectStmt string) (string, error) {
+
+	stmt := strings.TrimRight(selectStmt, ";")
+	m, err := ParseAndReturnNameGroupValueMap(getTableNameFromSelect(), stmt)
+
+	if err != nil {
+		return "", err
+	}
+
+	tableName, ok := m["tablename"]
+
+	if !ok {
+		return "", errors.New("Error: could not get table name from select statment")
+	}
+
+	return tableName, nil
+
 }
 
 func ParseAndReturnNameGroupValueMap(regexParser, statementToParse string) (map[string]string, error) {
