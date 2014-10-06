@@ -1,10 +1,13 @@
 package sqlite
 
 import "database/sql"
+
 import "../sqlconstants"
 import _ "github.com/mattn/go-sqlite3"
 import "fmt"
 import "errors"
+import "../godata"
+import "../../regexutil"
 
 type connection struct {
 	db *sql.DB
@@ -40,31 +43,104 @@ func (Conn *connection) CheckTableExists(tableName string) (bool, error) {
 
 }
 
-/*
-func getColumNamesFromSelectQuery(query string) ([]sqlData, error) {
+func (Conn *connection) Select(query string, data ...interface{}) (*godata.GoSelect, error) {
 
-}*/
-/*
-func (Conn *connection) Select(query string) ([]sqlData, error) {
-	rows, err := Conn.db.Query(query, data)
-
-	defer rows.Close()
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	//cols, err := rows.Columns()
-	_, err = rows.Columns()
+	tableName, err := regexutil.TableNameFromSelect(query)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	if len(tableName) == 0 {
+		return nil, errors.New("Could not figure out table name from select")
+	}
 
-}*/
+	goMetaTable, err := Conn.MetaGoTable(tableName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	goMetaTableColumns := goMetaTable.GetColumns()
+
+	if goMetaTableColumns == nil {
+		return nil, errors.New("Error Meta Table Columns are nil ")
+	}
+
+	resultRows, err := Conn.db.Query(query)
+
+	defer resultRows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	columnNamesInResultRows, err := resultRows.Columns()
+
+	if err != nil {
+		return nil, err
+	}
+
+	selectColumns := godata.NewGoColumns()
+
+	selectColumnCount := len(columnNamesInResultRows)
+
+	for _, columnName := range columnNamesInResultRows {
+		tableColumnType, ok := goMetaTableColumns[columnName]
+		if !ok {
+			return nil, errors.New("Column " + columnName + " , not found in hashmap")
+
+		}
+
+		selectColumns[columnName] = tableColumnType
+	}
+
+	selectRows := godata.NewGoRows()
+
+	for resultRows.Next() {
+		selectRow := godata.NewGoRow()
+		results := []interface{}{}
+
+		for _, columnName := range columnNamesInResultRows {
+			tableColumn, ok := selectColumns[columnName]
+
+			if !ok {
+
+				return nil, errors.New("Column " + columnName + " , not found in hashmap")
+
+			}
+
+			results, err = godata.AppendData(results, tableColumn.GoType())
+
+			if err != nil {
+				return nil, err
+			}
+
+		}
+
+		err := resultRows.Scan(results...)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		for i := 0; i < selectColumnCount; i++ {
+			temp, err := godata.PointerConvertor(results[i])
+			if err != nil {
+				return nil, err
+			}
+			selectRow[columnNamesInResultRows[i]] = temp
+		}
+
+		selectRows = append(selectRows, selectRow)
+
+	}
+
+	return godata.NewGoSelect(selectColumns, selectRows), nil
+
+	//sreturn nil, nil
+
+}
 
 func (Conn *connection) InitTable(createStatement string, tableName string) error {
 	if createStatement == "" {
@@ -99,37 +175,75 @@ func (Conn *connection) InitTable(createStatement string, tableName string) erro
 	return nil
 }
 
-func (Conn *connection) Insert(insertStatement string, data ...interface{}) error {
+func (Conn *connection) Insert(insertStatement string, data ...interface{}) (int64, error) {
 
 	if insertStatement == "" {
-		return errors.New("Insert Statement cannot be blank")
+		return -1, errors.New("Insert Statement cannot be blank")
 
 	}
 
 	if len(data) == 0 {
-		return errors.New("data cannot be empty")
+		return -1, errors.New("data cannot be empty")
 
 	}
 
 	tx, err := Conn.db.Begin()
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return -1, err
 	}
 
 	stmt, err := tx.Prepare(insertStatement)
 
 	if err != nil {
 		fmt.Println("Could not prepare statment = >", err)
-		return err
+		return -1, err
 	}
 
-	_, err = stmt.Exec(data)
-
-	err = tx.Commit()
+	results, err := stmt.Exec(data...)
 
 	defer stmt.Close()
 
-	return err
+	if err != nil {
+		return -1, err
+	}
+
+	err = tx.Commit()
+
+	n, err := results.LastInsertId()
+
+	if err != nil {
+		return -1, err
+	}
+
+	return n, err
+
+}
+
+func (Conn *connection) MetaGoTable(tableName string) (*godata.GoMetaTable, error) {
+
+	//fetch create statement from db
+	rows, err := Conn.db.Query(sqlconstants.SQLITE3_GET_SCHEMA, "table", tableName)
+
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if !rows.Next() {
+		return nil, errors.New("ERROR: could not get schema for table " + tableName + " , in database")
+	}
+	var schema string
+
+	rows.Scan(&schema)
+
+	gmeta, err := godata.NewMetaTableFromCreateStatement(schema)
+
+	if err != nil {
+		return nil, err
+	}
+	return gmeta, nil
 
 }
