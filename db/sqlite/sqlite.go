@@ -67,7 +67,7 @@ func (Conn *connection) Select(query string, data ...interface{}) (*godata.GoSel
 		return nil, errors.New("Error Meta Table Columns are nil ")
 	}
 
-	resultRows, err := Conn.db.Query(query)
+	resultRows, err := Conn.db.Query(query, data...)
 
 	defer resultRows.Close()
 
@@ -217,6 +217,49 @@ func (Conn *connection) Insert(insertStatement string, data ...interface{}) (int
 	}
 
 	return n, err
+
+}
+
+func (Conn *connection) Update(updateStatement string, data ...interface{}) error {
+
+	if updateStatement == "" {
+		return errors.New("Update Statement cannot be blank")
+
+	}
+
+	if len(data) == 0 {
+		return errors.New("data cannot be empty")
+
+	}
+
+	tx, err := Conn.db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	stmt, err := tx.Prepare(updateStatement)
+
+	if err != nil {
+		fmt.Println("Could not prepare statment = >", err)
+		return err
+	}
+
+	_, err = stmt.Exec(data...)
+
+	defer stmt.Close()
+
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+
+	if err != nil {
+		return err
+	}
+
+	return err
 
 }
 
