@@ -1,10 +1,9 @@
 package regexutil
 
 import (
+	"../db/sqlconstants"
 	"regexp"
 	"strings"
-
-	"../db/sqlconstants"
 )
 import "errors"
 
@@ -143,6 +142,16 @@ func fillCustomColumnType(parsedColumnMap map[string]string) error {
 }
 
 func ParseCreateStatement(statementToParse string) (string, []map[string]string, error) {
+
+	replaceFunctionsInCreate, err := sqlconstants.CreateStatementFunctionsToReplace()
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	for _, replaceFunction := range replaceFunctionsInCreate {
+		statementToParse = strings.Replace(statementToParse, replaceFunction, "", -1)
+	}
 
 	table, columns, err := firstPassParseCreateStatement(statementToParse)
 	if err != nil {
