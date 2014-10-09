@@ -20,6 +20,8 @@ type Connection interface {
 	Close() error
 	InitTable(createStatement string, tableName string) error
 	Insert(insertStatement string, data ...interface{}) (int64, error)
+	Update(updateStatement string, data ...interface{}) error
 	MetaGoTable(name string) (*godata.GoMetaTable, error)
 	Select(query string, data ...interface{}) (*godata.GoSelect, error)
+	Drop(dropStatment string) error
 }
