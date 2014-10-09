@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"../db/sqlconstants"
+	"strings"
 )
 
 const TEST_SQLITE3_CREATE_STATEMENT_A = "CREATE TABLE FOO ( X INTEGER, Y TEXT PRIMARY KEY)"
@@ -69,8 +70,48 @@ func TestFirstPassParseCreateStatement(t *testing.T) {
 
 }
 
+func TestX(t *testing.T) {
+
+	replaceFunctionsInCreate, err := sqlconstants.CreateStatementFunctionsToReplace()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	statementToParse := sqlconstants.SQLITE3_CREATE_BUCKET_SCHEMA
+
+	for _, replaceFunction := range replaceFunctionsInCreate {
+		statementToParse = strings.Replace(statementToParse, replaceFunction, "", -1)
+	}
+
+	_, columns, err := firstPassParseCreateStatement(statementToParse)
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = secondPassParseCreateStatement(columns)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+}
+
 func TestSecondPassParseCreateStatement(t *testing.T) {
-	_, columns, err := firstPassParseCreateStatement(sqlconstants.SQLITE3_CREATE_BUCKET_SCHEMA)
+
+	replaceFunctionsInCreate, err := sqlconstants.CreateStatementFunctionsToReplace()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	statementToParse := sqlconstants.SQLITE3_CREATE_BUCKET_SCHEMA
+
+	for _, replaceFunction := range replaceFunctionsInCreate {
+		statementToParse = strings.Replace(statementToParse, replaceFunction, "", -1)
+	}
+
+	_, columns, err := firstPassParseCreateStatement(statementToParse)
 	if err != nil {
 		t.Error(err)
 	}
