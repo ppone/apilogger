@@ -263,6 +263,29 @@ func (Conn *connection) Update(updateStatement string, data ...interface{}) erro
 
 }
 
+func (Conn *connection) Drop(dropStatement string) error {
+
+	if dropStatement == "" {
+		return errors.New("Drop Statement cannot be blank")
+
+	}
+
+	conn, err := NewConnection()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.db.Exec(dropStatement)
+
+	if err != nil {
+		return err
+	}
+
+	return err
+
+}
+
 func (Conn *connection) MetaGoTable(tableName string) (*godata.GoMetaTable, error) {
 
 	//fetch create statement from db
