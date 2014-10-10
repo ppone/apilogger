@@ -126,7 +126,7 @@ func TestUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	n, err := conn.Insert(SQLITE3_TEST_INSERT, "parag", "austin")
+	n, err := conn.Insert(SQLITE3_TEST_INSERT, "parag", "boston")
 
 	if err != nil {
 		t.Error(err)
@@ -136,23 +136,27 @@ func TestUpdate(t *testing.T) {
 		t.Error("Row was not inserted properly ; n = ", n)
 	}
 
-	n, err = conn.Insert(SQLITE3_TEST_INSERT, "bmw", "austin")
+	gdata, err := conn.Select(SQLITE3_TEST_SELECT)
+
+	if gdata.GetRows()[0]["NAME"] != "parag" {
+		t.Error("Name not inserted correctly")
+	}
+
+	if gdata.GetRows()[0]["ADDRESS"] != "boston" {
+		t.Error("Name not inserted correctly")
+	}
+
+	err = conn.Update(SQLITE3_TEST_UPDATE, "austin", "parag")
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if n != 2 {
-		t.Error("Row was not inserted properly ; n = ", n)
+	gdata, err = conn.Select(SQLITE3_TEST_SELECT)
+
+	if gdata.GetRows()[0]["ADDRESS"] != "austin" {
+		t.Error("Name not inserted correctly")
 	}
-
-	err = conn.Update(SQLITE3_TEST_UPDATE, "boston", "parag")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	_, err = conn.Select(SQLITE3_TEST_SELECT)
 
 	if err != nil {
 		t.Error(err)
