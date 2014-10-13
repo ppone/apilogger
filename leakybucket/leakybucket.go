@@ -169,7 +169,7 @@ func (L *leakyBucket) RefreshBucket() error {
 		return err
 	}
 
-	err = conn.Update(sqlconstants.SQLITE3_REFRESH_BUCKET, L.name)
+	err = conn.Update(sqlconstants.SQLITE3_REFRESH_BUCKET, L.name, L.name)
 	if err != nil {
 		return err
 	}
