@@ -2,6 +2,9 @@ package sqlconstants
 
 import "errors"
 import "strings"
+import "strconv"
+import "time"
+import "../../timeutil"
 
 const CURRENT_VENDOR = SQLITE3
 const SQLITE3_FILE_URL = "throttle.db"
@@ -37,6 +40,41 @@ const (
 	MYSQL
 	MONGODB
 )
+
+func FireTriggerEveryXDaysFrom(triggerDay int, startTimeDate time.Time) (string, error) {
+
+	if CurrentVendor() != "sqlite3" {
+		return "", errors.New("Vendor not recognized ")
+	}
+	baseSQL := "DATETIME('" + timeutil.NormalFormat(startTimeDate) + "',"
+	baseSQL = baseSQL + "'+" + strconv.Itoa(triggerDay) + " days')"
+
+	return baseSQL, nil
+}
+
+func FireTriggerEveryXMonthsFrom(triggerMonth int, startTimeDate time.Time) (string, error) {
+
+	if CurrentVendor() != "sqlite3" {
+		return "", errors.New("Vendor not recognized ")
+	}
+	baseSQL := "DATETIME('" + timeutil.NormalFormat(startTimeDate) + "',"
+	baseSQL = baseSQL + "'+" + strconv.Itoa(triggerMonth) + " months')"
+
+	return baseSQL, nil
+}
+
+func FireTriggerEveryXWeeksFrom(triggerWeek int, startTimeDate time.Time) (string, error) {
+
+	if CurrentVendor() != "sqlite3" {
+		return "", errors.New("Vendor not recognized ")
+	}
+	triggerWeek = triggerWeek * 7
+
+	baseSQL := "DATETIME('" + timeutil.NormalFormat(startTimeDate) + "',"
+	baseSQL = baseSQL + "'+" + strconv.Itoa(triggerWeek) + " days')"
+
+	return baseSQL, nil
+}
 
 func CreateStatementFunctionsToReplace() ([]string, error) {
 	if CURRENT_VENDOR == SQLITE3 {
