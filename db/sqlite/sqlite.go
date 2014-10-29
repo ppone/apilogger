@@ -187,28 +187,11 @@ func (Conn *connection) Insert(insertStatement string, data ...interface{}) (int
 
 	}
 
-	tx, err := Conn.db.Begin()
-	if err != nil {
-		fmt.Println(err)
-		return -1, err
-	}
-
-	stmt, err := tx.Prepare(insertStatement)
-
-	if err != nil {
-		fmt.Println("Could not prepare statment = >", err)
-		return -1, err
-	}
-
-	results, err := stmt.Exec(data...)
-
-	defer stmt.Close()
+	results, err := Conn.db.Exec(insertStatement, data...)
 
 	if err != nil {
 		return -1, err
 	}
-
-	err = tx.Commit()
 
 	n, err := results.LastInsertId()
 
@@ -232,28 +215,7 @@ func (Conn *connection) Update(updateStatement string, data ...interface{}) erro
 
 	}
 
-	tx, err := Conn.db.Begin()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	stmt, err := tx.Prepare(updateStatement)
-
-	if err != nil {
-		fmt.Println("Could not prepare statment = >", err)
-		return err
-	}
-
-	_, err = stmt.Exec(data...)
-
-	defer stmt.Close()
-
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
+	_, err := Conn.db.Exec(updateStatement, data...)
 
 	if err != nil {
 		return err
