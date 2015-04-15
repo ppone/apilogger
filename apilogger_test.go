@@ -1,4 +1,4 @@
-package sqlite
+package apilogger
 
 //import "fmt"
 import "testing"

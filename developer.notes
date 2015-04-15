@@ -1,1 +1,2 @@
 #Need to use standard ORM and refactor at some point
+#Need to to put Begin(Immediate | Execution) and Commit for transaction support
